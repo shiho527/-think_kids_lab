@@ -186,22 +186,59 @@
     // 教室検索（WPデータ版）
     // =============================
 
+    const BASE_PATH = "./wp-content/themes/Think-kids-lab-WP/img/school/";
+    const thinkkids = {
+      schools: {
+        23: [
+          {
+            name: "名古屋校",
+            address: "愛知県名古屋市...",
+            folder: "名古屋校",
+            imgNum: 1,
+          },
+          {
+            name: "豊田校",
+            address: "愛知県豊田市...",
+            folder: "豊田校",
+            imgNum: 2,
+          },
+        ],
+
+        13: [
+          {
+            name: "渋谷校",
+            address: "東京都渋谷区...",
+            folder: "渋谷校",
+            imgNum: 2,
+          },
+          {
+            name: "新宿校",
+            address: "東京都新宿区...",
+            folder: "新宿校",
+            imgNum: 1,
+          },
+        ],
+      },
+    };
     function renderSchools(code) {
       const schools = thinkkids.schools[code];
       if (!schools) return "<p>現在準備中です</p>";
 
       return schools
-        .map(
-          (school) => `
+        .map((school) => {
+          const imgPath =
+            BASE_PATH + school.folder + `/school${school.imgNum}.jpg`;
+
+          return `
         <div class="school-card">
-          <img src="${school.img}" alt="">
+          <img src="${imgPath}" alt="">
           <div class="school-card__body">
             <p class="school-card__title">${school.name}</p>
             <p>${school.address}</p>
           </div>
         </div>
-      `,
-        )
+      `;
+        })
         .join("");
     }
 
