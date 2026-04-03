@@ -185,72 +185,210 @@
     // =============================
     // 教室検索（WPデータ版）
     // =============================
+    // -----------------------------
+    // 画像のベースパス
+    // 例:
+    // wp-content/themes/Think-kids-lab-WP/img/school/札幌校/1.jpg
+    // -----------------------------
+    const BASE_PATH = "wp-content/themes/Think-kids-lab-WP/img/school";
 
-    const BASE_PATH = "./wp-content/themes/Think-kids-lab-WP/img/school/";
+    // -----------------------------
+    // data-code と 都道府県名 の対応表
+    // ※ ここのキーは、HTML側の data-code に合わせてください
+    // -----------------------------
+    const prefectureMap = {
+      hokkaido: "北海道",
+      tokyo: "東京都",
+      shizuoka: "静岡県",
+      aichi: "愛知県",
+      osaka: "大阪府",
+      fukuoka: "福岡県",
+    };
+
+    // -----------------------------
+    // 校舎データ
+    // img は持たせず、
+    // folder + imgNum から後で画像パスを組み立てる
+    // -----------------------------
     const thinkkids = {
       schools: {
-        23: [
+        北海道: [
           {
-            name: "名古屋校",
-            address: "愛知県名古屋市...",
-            folder: "名古屋校",
+            name: "札幌校",
+            address: "札幌市南区3-3-3",
+            folder: "札幌校",
             imgNum: 1,
-          },
-          {
-            name: "豊田校",
-            address: "愛知県豊田市...",
-            folder: "豊田校",
-            imgNum: 2,
           },
         ],
 
-        13: [
+        東京都: [
           {
             name: "渋谷校",
-            address: "東京都渋谷区...",
+            address: "渋谷区1-3-3",
             folder: "渋谷校",
             imgNum: 2,
           },
           {
             name: "新宿校",
-            address: "東京都新宿区...",
+            address: "新宿区3-3-3",
             folder: "新宿校",
+            imgNum: 1,
+          },
+        ],
+
+        静岡県: [
+          {
+            name: "静岡校",
+            address: "静岡市葵区2-2-2",
+            folder: "静岡校",
+            imgNum: 1,
+          },
+        ],
+
+        愛知県: [
+          {
+            name: "名古屋校",
+            address: "名古屋市中区1-1-1",
+            folder: "名古屋校",
+            imgNum: 1,
+          },
+          {
+            name: "久屋大通校",
+            address: "名古屋市中区2-2-2",
+            folder: "久屋大通校",
+            imgNum: 1,
+          },
+          {
+            name: "豊田校",
+            address: "豊田市西区2-2-2",
+            folder: "豊田校",
+            imgNum: 2,
+          },
+        ],
+
+        大阪府: [
+          {
+            name: "大阪校",
+            address: "大阪市北区2-2-2",
+            folder: "大阪校",
+            imgNum: 1,
+          },
+          {
+            name: "豊中校",
+            address: "豊中市西区1-1-2",
+            folder: "豊中校",
+            imgNum: 1,
+          },
+        ],
+
+        福岡県: [
+          {
+            name: "福岡校",
+            address: "福岡市博多区2-2-2",
+            folder: "福岡校",
             imgNum: 1,
           },
         ],
       },
     };
-    function renderSchools(code) {
-      const schools = thinkkids.schools[code];
-      if (!schools) return "<p>現在準備中です</p>";
 
+    // -----------------------------
+    // code から都道府県名を取り出す関数
+    // もし code がすでに "東京都" ならそのまま返す
+    // もし code が "tokyo" なら prefectureMap から "東京都" を返す
+    // -----------------------------
+    function getPrefectureName(code) {
+      // すでに schools のキーとして存在する場合
+      if (thinkkids.schools[code]) {
+        return code;
+      }
+
+      // data-code から都道府県名へ変換できる場合
+      if (prefectureMap[code]) {
+        return prefectureMap[code];
+      }
+
+      // どちらでもなければ null
+      return null;
+    }
+
+    // -----------------------------
+    // folder と imgNum から画像URLを作る関数
+    // 画像拡張子が png の場合は .png に変えてください
+    // -----------------------------
+    function getSchoolImagePath(school) {
+      return `${BASE_PATH}/${school.folder}/${school.imgNum}.jpg`;
+    }
+
+    // -----------------------------
+    // 校舎一覧を描画する関数
+    // -----------------------------
+    function renderSchools(code) {
+      // code を都道府県名に変換
+      const prefectureName = getPrefectureName(code);
+
+      // 該当する都道府県が見つからなければ準備中表示
+      if (!prefectureName) {
+        return "<p>現在準備中です</p>";
+      }
+
+      // 都道府県に属する校舎一覧を取得
+      const schools = thinkkids.schools[prefectureName];
+
+      // 校舎一覧が空なら準備中表示
+      if (!schools || schools.length === 0) {
+        return "<p>現在準備中です</p>";
+      }
+
+      // HTML文字列を作る
       return schools
         .map((school) => {
-          const imgPath =
-            BASE_PATH + school.folder + `/school${school.imgNum}.jpg`;
+          // ここで画像パスを組み立てる
+          const imgPath = getSchoolImagePath(school);
 
           return `
-        <div class="school-card">
-          <img src="${imgPath}" alt="">
-          <div class="school-card__body">
-            <p class="school-card__title">${school.name}</p>
-            <p>${school.address}</p>
+          <div class="school-card">
+            <img src="${imgPath}" alt="${school.name}">
+            <div class="school-card__body">
+              <p class="school-card__title">${school.name}</p>
+              <p>${school.address}</p>
+            </div>
           </div>
-        </div>
-      `;
+        `;
         })
         .join("");
     }
 
+    // -----------------------------
+    // クリックイベント
+    // -----------------------------
     $("[data-code]").on("click", function () {
+      // クリックされた要素の data-code を取得
       const code = $(this).data("code");
 
-      $(".js-result").text(`${thinkkids.prefecture[code]} の教室一覧`);
+      // code から都道府県名を取得
+      const prefectureName = getPrefectureName(code);
 
+      // 見つからなければ表示だけ更新して終了
+      if (!prefectureName) {
+        $(".js-result").text("現在準備中です");
+        fadeHtml($(".js-school-list"), "<p>現在準備中です</p>");
+        return;
+      }
+
+      // タイトル更新
+      $(".js-result").text(`${prefectureName} の教室一覧`);
+
+      // active状態をいったん全部外す
       $("[data-code]").removeClass("active is-active");
+
+      // map側(path)の active 付与
       $(`path[data-code="${code}"]`).addClass("is-active");
+
+      // button側の active 付与
       $(`button[data-code="${code}"]`).addClass("active");
 
+      // 一覧を差し替え
       fadeHtml($(".js-school-list"), renderSchools(code));
     });
   });
